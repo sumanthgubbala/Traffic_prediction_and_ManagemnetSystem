@@ -23,7 +23,7 @@ This is a **Streamlit-based web app** that helps users find alternative routes f
    git clone https://github.com/sumanthgubbala/Traffic_prediction_and_ManagemnetSystem.git
    ```
 
-## 🚀Install dependencies:
+## 🛠️ Install dependencies:
 
 1. Run the command :
 
