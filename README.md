@@ -43,7 +43,7 @@ This is a **Streamlit-based web app** that helps users find alternative routes f
 
 ## 📸 Screenshot
 
-    ![alt text](image-1.png)
+    [alt text](image-1.png)
 
     ![alt text](image-2.png)
 
