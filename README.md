@@ -40,3 +40,13 @@ This is a **Streamlit-based web app** that helps users find alternative routes f
 ## 🔑 API Key Setup
 
     Replace API_KEY in traffic_app.py with your OpenRouteService API key.
+
+## 📸 Screenshot
+
+    ![alt text](image-1.png)
+
+    ![alt text](image-2.png)
+
+    ![alt text](image-3.png)
+
+    ![alt text](image-4.png)
