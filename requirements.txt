@@ -6,3 +6,5 @@ streamlit
 plotly
 openrouteservice
 folium
+joblib
+streamlit_folium
