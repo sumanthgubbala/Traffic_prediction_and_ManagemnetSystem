@@ -11,6 +11,7 @@ import openrouteservice
 import folium
 from streamlit_folium import st_folium
 import requests
+import pickle
 
 
 # 🚀 OpenRouteService API Key
@@ -19,6 +20,11 @@ client = openrouteservice.Client(key=API_KEY)
 
 # Hyderabad Bounds
 HYDERABAD_BOUNDS = [[17.2, 78.2], [17.6, 78.6]]
+
+@st.cache_resource
+def load_pickle(file_path):
+    with open(file_path, "rb") as f:
+        return pickle.load(f)
 
 # Define AttentionLayer and load model (unchanged)
 class AttentionLayer(Layer):
@@ -41,7 +47,7 @@ class AttentionLayer(Layer):
         config = super(AttentionLayer, self).get_config()
         return config
 
-class_weights = joblib.load('class_weights_30min_with_features.pkl')
+class_weights = load_pickle("class_weights_30min_with_features.pkl")
 class_weights_tensor = tf.constant([class_weights[0], class_weights[1], class_weights[2]], dtype=tf.float32)
 
 def weighted_sparse_categorical_crossentropy(y_true, y_pred):
