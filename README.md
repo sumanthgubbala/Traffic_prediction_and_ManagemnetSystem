@@ -47,3 +47,8 @@ This is a **Streamlit-based web app** that helps users find alternative routes f
 ![App Screenshot 2](images/image-2.png)
 ![App Screenshot 3](images/image-3.png)
 ![App Screenshot 4](images/image-4.png)
+![App Screenshot 5](images/image-5.png)
+![App Screenshot 6](images/image-6.png)
+![App Screenshot 7](images/image-7.png)
+![App Screenshot 8](images/image-8.png)
+
