@@ -34,7 +34,7 @@ This is a **Streamlit-based web app** that helps users find alternative routes f
 
 2. Run the app:
    ```sh
-   streamlit run traffic_app.py
+   streamlit run app.py
    ```
 
 ## 🔑 API Key Setup
