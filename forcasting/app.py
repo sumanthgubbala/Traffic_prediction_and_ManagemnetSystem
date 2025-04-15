@@ -75,7 +75,7 @@ def get_weather():
     weather_condition = weather_data['current']['condition']['text']
     weather = ['Sunny', 'Rainy', 'Foggy']
     if weather_condition not in weather :
-        return 'Foggy'
+        return 'Sunny'
     return weather_condition
 
 
@@ -97,6 +97,7 @@ features = ['traffic_density', 'avg_speed', 'is_rush_hour', 'is_weekend', 'accid
             'month_April', 'month_August', 'month_December', 'month_February', 'month_January',
             'month_July', 'month_June', 'month_March', 'month_May', 'month_November',
             'month_October', 'month_September']
+
 
 if 'data_buffer' not in st.session_state:
     st.session_state.data_buffer = []
@@ -225,12 +226,13 @@ m = folium.Map(
     max_bounds_violation='bounce'  # Bounce back if out of bounds
 )
 
+icon_type = "car" if travel_mode == "Car 🚗" else "bicycle"
 
 # 📍 Add Markers for Start & Destination
 if st.session_state.start:
-    folium.Marker(st.session_state.start, popup="Start", icon=folium.Icon(color="blue")).add_to(m)
+    folium.Marker(st.session_state.start, popup="Start",icon=folium.Icon(color="blue", icon=icon_type, prefix="fa")).add_to(m)
 if st.session_state.destination:
-    folium.Marker(st.session_state.destination, popup="Destination", icon=folium.Icon(color="red")).add_to(m)
+    folium.Marker(st.session_state.destination, popup="Destination", icon=folium.Icon(color="red", icon=icon_type, prefix="fa")).add_to(m)
 
 
 # 🖱️ Capture Clicked Location
@@ -269,8 +271,9 @@ if route_data and "features" in route_data and st.session_state.prediction_df is
     route = route_data["features"][0]["geometry"]["coordinates"]
     m = folium.Map(location=[(st.session_state.start[0] + st.session_state.destination[0]) / 2, 
                             (st.session_state.start[1] + st.session_state.destination[1]) / 2], zoom_start=13)
-    folium.Marker(st.session_state.start, popup="Start", icon=folium.Icon(color="blue")).add_to(m)
-    folium.Marker(st.session_state.destination, popup="Destination", icon=folium.Icon(color="red")).add_to(m)
+    #icon_type = "car" if travel_mode == "Car 🚗" else "bicycle"
+    folium.Marker(st.session_state.start, popup="Start", icon=folium.Icon(color="blue", icon=icon_type, prefix="fa")).add_to(m)
+    folium.Marker(st.session_state.destination, popup="Destination",  icon=folium.Icon(color="red", icon=icon_type, prefix="fa")).add_to(m)
     folium.PolyLine([(lat, lon) for lon, lat in route], color='blue', weight=5).add_to(m)
     st_folium(m, width=700, height=500)
 if st.session_state.start and st.session_state.destination:
@@ -407,17 +410,20 @@ if st.session_state.congestion_levels:
     alt_route_color =congestion_map[["Low", "Moderate", "High"][max_congestion]]
     if route_data and "features" in route_data and st.session_state.prediction_df is None:
         route = route_data["features"][0]["geometry"]["coordinates"]
+        distance_km = round(route_data["features"][0]["properties"]["segments"][0]["distance"] / 1000,2)
+        duration_minutes = round(route_data["features"][0]["properties"]["segments"][0]["distance"] / 60, 2)
         m = folium.Map(location=[(st.session_state.start[0] + st.session_state.destination[0]) / 2, 
                                 (st.session_state.start[1] + st.session_state.destination[1]) / 2], zoom_start=13)
-        folium.Marker(st.session_state.start, popup="Start", icon=folium.Icon(color="blue")).add_to(m)
-        folium.Marker(st.session_state.destination, popup="Destination", icon=folium.Icon(color="red")).add_to(m)
-        folium.PolyLine([(lat, lon) for lon, lat in route], color=alt_route_color, weight=5).add_to(m)
+        folium.Marker(st.session_state.start, popup="Start", icon=folium.Icon(color="blue", icon=icon_type, prefix="fa")).add_to(m)
+        folium.Marker(st.session_state.destination, popup="Destination", icon=folium.Icon(color="red", icon=icon_type, prefix="fa")).add_to(m)
+        popup_text_inital = f"Route <br>Distance: {distance_km} km<br>Time: {duration_minutes} min"
+        folium.PolyLine([(lat, lon) for lon, lat in route], color=alt_route_color, weight=5, popup=folium.Popup(popup_text_inital, max_width=200)).add_to(m)
         st_folium(m, width=700, height=500)
 
 
 if st.session_state.congestion_levels and max_congestion > 0:
     st.subheader("Alternative Routes:")
-    alternative_count = 3 if max_congestion > 1 else 2
+    alternative_count = 2 if max_congestion > 1 else 2
     #st.write(alternative_count)
     st.write(f"Generating alternative routes...")
     st.session_state.alternative = alternative_count
@@ -432,23 +438,47 @@ if st.session_state.congestion_levels and max_congestion > 0:
             )
         routes = st.session_state.alternative_route
         #st.write(f"### 🚦 Found {len(routes['features'])} routes for {travel_mode}")
+        st.subheader(f"**Single Map** ")
+        durations = []
+        routes_alternative = []
+        for i, feature in enumerate(routes["features"]):
+            route = feature["geometry"]["coordinates"]
+            distance_km = round(feature["properties"]["segments"][0]["distance"] / 1000, 2)
+            duration_minutes = round(feature["properties"]["segments"][0]["duration"] / 60, 2)
+            durations.append(duration_minutes)
+            routes_alternative.append((route, distance_km, duration_minutes))
+
+        route_intal = route_data["features"][0]["geometry"]["coordinates"]
+        level = "High " if max_congestion == 2 else "Moderate"
+        popup__text_inital = f" predicted congestion : {level}"
+        folium.PolyLine([(lat, lon) for lon, lat in route_intal], color='red', weight=5, popup=folium.Popup(popup__text_inital, max_width=200)).add_to(m)
+        # Add PolyLine for each route
+        sorted_routes = [x for _, x in sorted(zip(durations, routes_alternative))]
+        colors = ["green", "blue", "purple"]
+        for i, (route, distance_km, duration_minutes) in enumerate(sorted_routes):
+            popup_text = f"Route {i+1}<br>Distance: {distance_km} km<br>Time: {duration_minutes} min"
+            color = colors[i % len(colors)]
+            folium.PolyLine([(lat, lon) for lon, lat in route], color=color, weight=5,popup=folium.Popup(popup_text, max_width=200)).add_to(m)
+        # Render the single map
+        st_folium(m, width=700, height=500)
 
         for i, feature in enumerate(routes["features"]):
             distance_km = round(feature["properties"]["segments"][0]["distance"] / 1000, 2)
             duration_minutes = round(feature["properties"]["segments"][0]["duration"] / 60, 2)
+            color = colors[i % len(colors)]
             #alt_route_color = congestion_map["Low"] if i > 0 else congestion_map[["Low", "Moderate", "High"][max_congestion]]
-
             m = folium.Map(location=[(st.session_state.start[0] + st.session_state.destination[0]) / 2, 
                                     (st.session_state.start[1] + st.session_state.destination[1]) / 2], zoom_start=13)
-            folium.Marker(st.session_state.start, popup="Start", icon=folium.Icon(color="blue")).add_to(m)
-            folium.Marker(st.session_state.destination, popup="Destination", icon=folium.Icon(color="red")).add_to(m)
+            folium.Marker(st.session_state.start, popup="Start", icon=folium.Icon(color="blue", icon=icon_type, prefix="fa")).add_to(m)
+            folium.Marker(st.session_state.destination, popup="Destination", icon=folium.Icon(color="red", icon=icon_type, prefix="fa")).add_to(m)
             folium.PolyLine([(lat, lon) for lon, lat in feature["geometry"]["coordinates"]], 
-                            color="green", weight=5).add_to(m)
+                            color=color, weight=5).add_to(m)
             
             st.write(f"### 🗺️ Route {i+1}: {distance_km} km")
             st.write(f"**Expected Time** :  {round(duration_minutes)} minutes")
             st_folium(m, width=700, height=500)
         #st.write(f"**Congestion Level:** ")
+        
     except Exception as e:
 
         #st.error(f"⚠️ Failed to retrieve alternative routes: {e}")
