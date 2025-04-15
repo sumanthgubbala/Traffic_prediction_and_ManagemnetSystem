@@ -39,7 +39,7 @@ This is a **Streamlit-based web app** that helps users find alternative routes f
 
 ## 🔑 API Key Setup
 
-    Replace API_KEY in traffic_app.py with your OpenRouteService API key.
+    Replace API_KEY in app.py with your OpenRouteService API key.
 
 ## 📸 Screenshot
 
